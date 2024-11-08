@@ -1,0 +1,140 @@
+[tool.poetry]
+name = "api"
+version = "0.1.0"
+description = "API system for the VR application"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.110.1"
+uvicorn = "^0.29.0"
+pydantic = {extras = ["email"], version = "^2.7.1"}
+asyncpg = "^0.29.0"
+uuid7 = "^0.1.0"
+greenlet = "^3.0.3"
+sqlmodel = "^0.0.21"
+
+datetime = "^5.5"
+[tool.poetry.group.dev.dependencies]
+black = "^24.3.0"
+pylint = "^3.1.0"
+autohooks = "^24.2.0"
+autohooks-plugin-pylint = "^23.10.0"
+autohooks-plugin-black = "^23.10.0"
+
+[tool.poetry.scripts]
+dev = "scripts.app:start"
+setup = "scripts.setup:setup"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.autohooks]
+mode = "poetry"
+pre-commit = [
+  "autohooks.plugins.black",
+  "autohooks.plugins.pylint",
+]
+
+[tool.autohooks.plugins.black]
+include = ["*.py", "local_run"]
+arguments = ["--check"]
+
+[tool.autohooks.plugins.pylint]
+include = ["*.py", "local_run"]
+
+[tool.pylint.main]
+py-version = "3.12"
+suggestion-mode = true
+# init-hook is to handle pylint/autohook bug
+# init-hook="import sys; import os; sys.path.append(os.path.abspath('.'));"
+extension-pkg-allow-list = ["pydantic"]
+ignore-patterns = [
+  "Pipfile",
+  ".+.ini",
+  ".+.toml",
+  ".+.md",
+  ".+json",
+  ".+.(yaml|yml)",
+  "Docker",
+  "Jenkins",
+  "node_modules",
+  "examples",
+  "package.*",
+  "coverage.*",
+]
+
+[tool.black]
+line-length = 120
+target-version = ['py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | \.toml
+  | \.sh
+  | \.ini
+  | _build
+  | buck-out
+  | build
+  | dist
+  | Dockerfile
+  | Jenkinfile
+  | examples
+  # The following are specific to Black, you probably don't want those.
+  | blib2to3
+  | tests/data
+  | profiling
+  # Following are adding due to serverless framework usage
+  | node_modules
+)/
+'''
+
+[tool.pylint.basic]
+argument-naming-style = "snake_case"
+attr-naming-style = "snake_case"
+class-attribute-naming-style = "snake_case"
+class-const-naming-style = "UPPER_CASE"
+class-naming-style = "PascalCase"
+function-naming-style = "snake_case"
+method-naming-style = "snake_case"
+module-naming-style = "snake_case"
+
+[tool.pylint.design]
+# Maximum number of statements in function / method body.
+max-statements = 50
+max-attributes=12 # Maximum number of attributes in a class
+
+[tool.pylint.refactoring]
+# Maximum number of nested blocks for function / method body
+max-nested-blocks = 5
+
+[tool.pylint.similarities]
+# similarity computation
+ignore-comments = true
+ignore-docstrings = true
+ignore-imports = true
+ignore-signatures = true
+
+[tool.pylint."messages control"]
+disable = [
+  "missing-module-docstring", # C0114
+  "missing-class-docstring", # C0115
+  "missing-function-docstring", # C0116
+  "line-too-long", # C0301 - Black tool formatting is considered
+  "too-few-public-methods", # R0903
+  "protected-access", # W0212
+  "super-init-not-called", # W0231
+  "fixme", # W0511
+  "redefined-outer-name", # W0621
+  "unused-argument", # W0613
+  "broad-except", # W0703
+  "logging-fstring-interpolation", # W1203
+]
