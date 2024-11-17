@@ -1,6 +1,10 @@
-from sqlmodel import Field, SQLModel, AutoString
+from typing import TYPE_CHECKING
+from sqlmodel import Field, SQLModel, AutoString, Relationship
 from pydantic import EmailStr
 from .base import IdMixin, TimestampMixin, SoftDeleteMixin, BaseModel
+
+if TYPE_CHECKING:
+    from .post import Post
 
 
 class UserBase(SQLModel):
@@ -14,6 +18,10 @@ class UserBase(SQLModel):
 
 class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=True):
     __tablename__ = "users"
+
+    posts: list["Post"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
 
     def __repr__(self):
         return f"<User (id: {self.id}, email: {self.email})>"

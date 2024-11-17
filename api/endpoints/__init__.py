@@ -22,6 +22,10 @@ TAGS_METADATA: list[dict] = [  # for better documentation in openapi spec
         "description": "Endpoint for chatbot",
     
     },
+    {
+        "name": "Post",
+        "description": "Endpoint for posts",
+    },
 ]
 
 

@@ -1,33 +1,37 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 import httpx
+import re
 
-# Define the data model for the request body
 class MessageRequest(BaseModel):
     message: str
 
-# Initialize the router with the prefix directly
 chat_router = APIRouter(prefix="/api/api1")
 
-# Define the POST endpoint
+def sanitize_message(message: str) -> str:
+    return re.sub(r'[^\x00-\x7F]+', '', message)
+
 @chat_router.post("/")
 async def chatbot_response(request: MessageRequest):
-    # URL of the external chatbot endpoint
     external_url = "https://web-production-dab9b.up.railway.app/api/api1/"
+    sanitized_message = sanitize_message(request.message)
+    data = {"message": sanitized_message}
 
-    # Prepare the data to be sent in the request
-    data = {"message": request.message}
-
-    # Make a request to the external chatbot service
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         try:
             response = await client.post(external_url, json=data, headers={"Content-Type": "application/json"})
-            response.raise_for_status()  # Raise an exception for any non-2xx status codes
-
-            # Return the response from the external chatbot API
+            response.raise_for_status()
             return {"response_text": response.json().get("response_text", "No response text")}
         except httpx.RequestError as e:
-            return {"error": f"An error occurred while requesting the chatbot: {str(e)}"}
+            return {
+                "error": "RequestError",
+                "message": str(e),
+                "payload": data
+            }
         except httpx.HTTPStatusError as e:
-            return {"error": f"HTTP error occurred: {e.response.status_code}"}
-
+            return {
+                "error": "HTTPStatusError",
+                "status_code": e.response.status_code,
+                "response_body": e.response.text,
+                "payload": data
+            }
