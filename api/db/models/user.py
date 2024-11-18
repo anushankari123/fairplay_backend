@@ -13,7 +13,8 @@ class UserBase(SQLModel):
     email: EmailStr = Field(
         ..., description="Email address of the user", nullable=False, index=True, unique=True, sa_type=AutoString
     )
-    phone_number: str = Field(None, description="Phone number of the user", unique=True, sa_type=AutoString)
+    phone_number: str = Field(None, description="Phone number of the user", unique=False, sa_type=AutoString)
+    password: str = Field(..., description="Hashed password of the user", nullable=False, sa_type=AutoString)
 
 
 class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=True):

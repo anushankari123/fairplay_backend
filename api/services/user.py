@@ -49,29 +49,22 @@ class UserService(BaseService):
         res = await User.get(db=self.db)
         return {"data": res.all()}
 
-    async def validate_unique_user(self, email: str = None, phone_number: str = None, user_id: UUID = None):
+    async def validate_unique_user(self, email: str = None, user_id: UUID = None):
         """
-        Validate that the given email and phone number are unique.
+        Validate that the given email is unique.
 
         Args:
         - email (str): Email to check for uniqueness.
-        - phone_number (str): Phone number to check for uniqueness.
         - user_id (UUID): User ID to exclude from the uniqueness check.
 
         Raises:
-        - DuplicateConstraint: Raised if a user with the same email or phone number already exists.
+        - DuplicateConstraint: Raised if a user with the same email already exists.
         """
         # Check for unique email
         if email:
             existing_user = await User.get(db=self.db, filters=[User.email == email])
             if (user := existing_user.one_or_none()) and user.id != user_id:
                 raise DuplicateConstraint("Email is already taken")
-
-        # Check for unique phone number
-        if phone_number:
-            existing_user = await User.get(db=self.db, filters=[User.phone_number == phone_number])
-            if (user := existing_user.one_or_none()) and user.id != user_id:
-                raise DuplicateConstraint("Phone number is already taken")
 
     async def create_user(self, data: UserCreate) -> UserRead:
         """
@@ -84,9 +77,9 @@ class UserService(BaseService):
         - UserRead: Details of the created user.
 
         Raises:
-        - DuplicateConstraint: Raised if a user with the same email or phone number already exists.
+        - DuplicateConstraint: Raised if a user with the same email already exists.
         """
-        await self.validate_unique_user(email=data.email, phone_number=data.phone_number)
+        await self.validate_unique_user(email=data.email)
 
         new_user = User(**data.model_dump())
         await new_user.save(self.db)
@@ -115,10 +108,10 @@ class UserService(BaseService):
         - UserRead: Details of the updated user.
 
         Raises:
-        - DuplicateConstraint: Raised if a user with the same email or phone number already exists.
+        - DuplicateConstraint: Raised if a user with the same email already exists.
         """
         await self.validate_unique_user(
-            email=getattr(data, "email", None), phone_number=getattr(data, "phone_number", None), user_id=user_id
+            email=getattr(data, "email", None), user_id=user_id
         )
 
         user = await self.get_user(user_id)
