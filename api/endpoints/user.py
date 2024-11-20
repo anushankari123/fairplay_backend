@@ -2,9 +2,17 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from api.services import UserService
 from api.interfaces.utils import List
-from api.interfaces.user import UserRead, UserCreate, UserUpdate
+from api.interfaces.user import UserRead, UserCreate, UserUpdate, UserLogin
 
 user_router = APIRouter(prefix="/users")
+
+
+@user_router.post("/login")
+async def login(login_data: UserLogin, service: UserService = Depends(UserService)):
+    """
+    Endpoint for user login
+    """
+    return await service.login(login_data)
 
 
 @user_router.get("/{user_id}", response_model=UserRead)

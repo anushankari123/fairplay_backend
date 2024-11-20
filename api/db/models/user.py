@@ -5,6 +5,7 @@ from .base import IdMixin, TimestampMixin, SoftDeleteMixin, BaseModel
 
 if TYPE_CHECKING:
     from .post import Post
+    from .games import GameScore
 
 
 class UserBase(SQLModel):
@@ -21,6 +22,9 @@ class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=
     __tablename__ = "users"
 
     posts: list["Post"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+    game_scores: list["GameScore"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
 

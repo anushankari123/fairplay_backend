@@ -123,3 +123,7 @@ class _NoCredentialsError(HTTPError):
 
 class UnauthorisedUser(ACLError):
     detail = "User not found"
+
+class AuthenticationError(Exception):
+    """Raised when authentication fails"""
+    pass
