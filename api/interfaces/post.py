@@ -16,8 +16,10 @@ class PostRead(PostBase, IdMixin, TimestampMixin):
 
 
 class PostUpdate(SQLModel):
+    title: Optional[str] = None
     description: Optional[str] = None
     hashtag: Optional[str] = None
-    photo: Optional[str] = None
+    image_url: Optional[str] = None
+    image_data: Optional[str] = None
 
     model_config = ConfigDict(extra="forbid")

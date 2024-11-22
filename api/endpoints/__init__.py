@@ -30,6 +30,14 @@ TAGS_METADATA: list[dict] = [  # for better documentation in openapi spec
         "name": "Games",
         "description": "Endpoint for games",
     },
+    {
+        "name": "Upload",
+        "description": "Endpoints for uploads",
+    },
+    {
+        "name": "Image",
+        "description": "Endpoint for image",
+    },
 ]
 
 

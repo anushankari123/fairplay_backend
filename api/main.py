@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from api.db import initiate as init_db
 from api.middleware import custom_middleware_setup
@@ -55,6 +56,8 @@ The API is intended to be used by both mobile and web frontend applications.
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
     return app
 
