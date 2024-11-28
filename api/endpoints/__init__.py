@@ -38,6 +38,10 @@ TAGS_METADATA: list[dict] = [  # for better documentation in openapi spec
         "name": "Image",
         "description": "Endpoint for image",
     },
+    {
+        "name": "Messages",
+        "description": "Endpoint for messages",
+    },
 ]
 
 
