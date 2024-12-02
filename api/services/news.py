@@ -9,7 +9,8 @@ class NewsService:
     @classmethod
     def fetch_news(cls, page: int = 1) -> List[dict]:
         try:
-            query = "doping OR anti-doping"
+            # Query focused on sports, doping, and anti-doping
+            query = "(doping OR anti-doping) AND sports"
             params = {
                 "q": query,
                 "apiKey": cls.API_KEY,
@@ -26,8 +27,17 @@ class NewsService:
             # Add error handling for API response
             if data.get("status") == "error":
                 raise Exception(data.get("message", "Failed to fetch news"))
-                
-            return data.get("articles", [])
+            
+            # Filter articles to include only those with images and ensure topic relevance
+            articles = data.get("articles", [])
+            filtered_articles = [
+                article for article in articles 
+                if article.get("urlToImage") is not None
+                and any(keyword in article.get("title", "").lower() or article.get("description", "").lower()
+                        for keyword in ["doping", "anti-doping", "sports"])
+            ]
+            
+            return filtered_articles
         except requests.exceptions.RequestException as e:
             raise Exception(f"Network error: {str(e)}")
         except Exception as e:
