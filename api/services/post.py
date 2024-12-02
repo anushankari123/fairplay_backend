@@ -76,3 +76,22 @@ class PostService(BaseService):
         post = await self.get_post(post_id)
         await post.update(self.db, data)
         return post
+    
+    async def increment_like_count(self, post_id: UUID) -> PostRead:
+        """
+        Increment the like count of a post.
+        """
+        post = await self.get_post(post_id)
+        post.like_count = post.like_count + 1 if post.like_count else 1
+        await post.save(self.db)
+        return post
+    
+    async def decrement_like_count(self, post_id: UUID) -> PostRead:
+        """
+        Decrement the like count of a post.
+        """
+        post = await self.get_post(post_id)
+        if post.like_count and post.like_count > 0:
+            post.like_count -= 1
+        await post.save(self.db)
+        return post

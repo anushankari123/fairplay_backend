@@ -21,5 +21,6 @@ class PostUpdate(SQLModel):
     hashtag: Optional[str] = None
     image_url: Optional[str] = None
     image_data: Optional[str] = None
+    like_count: Optional[int] = None
 
     model_config = ConfigDict(extra="forbid")
