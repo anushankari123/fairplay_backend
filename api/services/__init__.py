@@ -1,3 +1,5 @@
 from .user import UserService
 from .post import PostService
 from .games import GameScoreService
+from .messages import MessageService
+from .comments import CommentService

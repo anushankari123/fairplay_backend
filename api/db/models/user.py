@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING,Optional
 from sqlmodel import Field, SQLModel, AutoString, Relationship
 from pydantic import EmailStr
 from .base import IdMixin, TimestampMixin, SoftDeleteMixin, BaseModel
@@ -6,6 +6,7 @@ from .base import IdMixin, TimestampMixin, SoftDeleteMixin, BaseModel
 if TYPE_CHECKING:
     from .post import Post
     from .games import GameScore
+    from .comments import Comment
 
 
 class UserBase(SQLModel):
@@ -16,6 +17,9 @@ class UserBase(SQLModel):
     )
     phone_number: str = Field(None, description="Phone number of the user", unique=False, sa_type=AutoString)
     password: str = Field(..., description="Hashed password of the user", nullable=False, sa_type=AutoString)
+    age: Optional[int] = Field(None, description="Age of the user")
+    bio: Optional[str] = Field(None, description="Bio of the user")
+    
 
 
 class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=True):
@@ -27,6 +31,11 @@ class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=
     game_scores: list["GameScore"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
+    comments: list["Comment"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+    
+
 
     def __repr__(self):
         return f"<User (id: {self.id}, email: {self.email})>"

@@ -45,3 +45,18 @@ async def update_post(post_id: UUID, info: PostUpdate, service: PostService = De
     Endpoint to update the given post details
     """
     return await service.update_post(post_id, info)
+
+@post_router.post("/{post_id}/like", response_model=PostRead, summary="Increment post like count")
+async def like_post(post_id: UUID, post_service: PostService = Depends(PostService)):
+    """
+    Increment the like count of a post.
+    """
+    return await post_service.increment_like_count(post_id)
+
+
+@post_router.post("/{post_id}/unlike", response_model=PostRead, summary="Decrement post like count")
+async def unlike_post(post_id: UUID, post_service: PostService = Depends(PostService)):
+    """
+    Decrement the like count of a post.
+    """
+    return await post_service.decrement_like_count(post_id)
