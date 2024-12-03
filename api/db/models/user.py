@@ -8,6 +8,8 @@ if TYPE_CHECKING:
     from .games import GameScore
     from .comments import Comment
     from .forum import ForumMember, ForumMessage
+    from .module import Module
+    from .lesson import Lesson
 
 
 class UserBase(SQLModel):
@@ -39,6 +41,12 @@ class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     forum_messages: list["ForumMessage"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+    modules: list["Module"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+    lessons: list["Lesson"]= Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     

@@ -35,10 +35,10 @@ TAGS_METADATA: list[dict] = [  # for better documentation in openapi spec
         "name": "Gemini",
         "description": "Endpoint for gemini",
     },
-     {
+    {
         "name": "Journal",
         "description": "Endpoint for journal",
-     },
+    },    
     {
         "name": "Upload",
         "description": "Endpoints for uploads",
@@ -60,6 +60,15 @@ TAGS_METADATA: list[dict] = [  # for better documentation in openapi spec
         "name": "Forum",
         "description": "Endpoint for forum",
     },
+    {
+        "name": "Module",
+        "description": "Endpoint for modules",
+    },
+    {
+        "name": "Lesson",
+        "description": "Endpoint for lessons",
+    },
+
 ]
 
 
