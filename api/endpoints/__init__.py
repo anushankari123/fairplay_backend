@@ -46,6 +46,10 @@ TAGS_METADATA: list[dict] = [  # for better documentation in openapi spec
         "name": "Comments",
         "description": "Endpoint for comments",
     },
+    {
+        "name": "Forum",
+        "description": "Endpoint for forum",
+    },
 ]
 
 

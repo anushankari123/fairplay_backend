@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from .post import Post
     from .games import GameScore
     from .comments import Comment
+    from .forum import ForumMember, ForumMessage
 
 
 class UserBase(SQLModel):
@@ -32,6 +33,12 @@ class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     comments: list["Comment"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+    forum_members: list["ForumMember"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+    forum_messages: list["ForumMessage"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     

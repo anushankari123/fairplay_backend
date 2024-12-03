@@ -1,4 +1,3 @@
-# services/messages.py
 from uuid import UUID
 from sqlmodel import select, col
 from api.db.models.messages import Message

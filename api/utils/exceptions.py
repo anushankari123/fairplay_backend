@@ -127,3 +127,10 @@ class UnauthorisedUser(ACLError):
 class AuthenticationError(Exception):
     """Raised when authentication fails"""
     pass
+
+class ConflictError(HTTPError):
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Conflict error occurred"
+
+    def __init__(self, detail: str = None):
+        self.detail = detail if detail else self.detail
