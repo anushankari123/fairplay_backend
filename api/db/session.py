@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 
 # TODO: set DB URL based on ENV
-DATABASE_URL = "postgresql+asyncpg://postgres:Anu2005$@localhost:5432/doping"
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fairplay"
 
 engine = create_async_engine(DATABASE_URL, echo="debug", future=True)
 async_session_maker = async_sessionmaker(

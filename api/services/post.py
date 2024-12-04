@@ -95,3 +95,20 @@ class PostService(BaseService):
             post.like_count -= 1
         await post.save(self.db)
         return post
+    
+    async def get_posts_by_user(self, user_id: UUID) -> List[PostRead]:
+        """
+        Retrieve a list of posts created by a specific user.
+
+        Args:
+        - user_id (UUID): The UUID of the user whose posts are to be retrieved.
+
+        Returns:
+        - List[PostRead]: List of posts created by the user.
+        """
+        res = await Post.get(
+            db=self.db,
+            filters=[Post.user_id == user_id, ~col(Post.is_deleted)]
+        )
+        return {"data": res.all()}
+

@@ -60,3 +60,10 @@ async def unlike_post(post_id: UUID, post_service: PostService = Depends(PostSer
     Decrement the like count of a post.
     """
     return await post_service.decrement_like_count(post_id)
+
+@post_router.get("/user/{user_id}", response_model=List[PostRead])
+async def get_posts_by_user(user_id: UUID, service: PostService = Depends(PostService)):
+    """
+    Endpoint to get posts created by a specific user.
+    """
+    return await service.get_posts_by_user(user_id)

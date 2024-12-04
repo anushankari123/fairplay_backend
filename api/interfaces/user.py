@@ -37,6 +37,11 @@ class UserUpdate(SQLModel):
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None
+    age: Optional[int] = None
+    bio: Optional[str] =None
+    country: Optional[str] = None
+    state: Optional[str] = None
+    dp_url: Optional[str] =None
 
     model_config = ConfigDict(extra="forbid")
 

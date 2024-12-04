@@ -22,6 +22,9 @@ class UserBase(SQLModel):
     password: str = Field(..., description="Hashed password of the user", nullable=False, sa_type=AutoString)
     age: Optional[int] = Field(None, description="Age of the user")
     bio: Optional[str] = Field(None, description="Bio of the user")
+    country: Optional[str] = Field(None, description="Country of the user")
+    state: Optional[str] = Field(None, description="State of the user")
+    dp_url: Optional[str] = Field(None, description="URL of the uploaded image")
     
 
 
