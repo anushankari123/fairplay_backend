@@ -2,24 +2,20 @@ from typing import Optional
 from uuid import UUID
 from pydantic import ConfigDict
 from sqlmodel import SQLModel
-from api.db.models.module import ModuleBase
+from api.db.models.module import ModuleQuizBase
 from api.db.models import IdMixin, TimestampMixin, SoftDeleteMixin
 
-
-class ModuleCreate(SQLModel):
+class ModuleQuizCreate(ModuleQuizBase):
     user_id: UUID
-    name: str
-    image_url: Optional[str] = None
     model_config = ConfigDict(extra="forbid")
 
-
-class ModuleRead(ModuleBase, IdMixin, TimestampMixin):
+class ModuleQuizRead(ModuleQuizBase, IdMixin, TimestampMixin):
     user_id: UUID
 
+class ModuleQuizUpdate(SQLModel):
+    module_name: Optional[str] = None
+    module_progress: Optional[int] = None
+    module_completed: Optional[int] = None
+    m_quizscore: Optional[int] = None
 
-
-class ModuleUpdate(SQLModel):
-    quiz_score: Optional[int] = None
-    modules_completed: Optional[int] = None
-    modules_in_progress: Optional[int] = None
     model_config = ConfigDict(extra="forbid")

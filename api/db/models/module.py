@@ -1,29 +1,23 @@
-from typing import TYPE_CHECKING
 from uuid import UUID
+from typing import TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
 from .base import IdMixin, TimestampMixin, SoftDeleteMixin, BaseModel
 
 if TYPE_CHECKING:
-    from .lesson import Lesson
     from .user import User
 
+class ModuleQuizBase(SQLModel):
+    module_name: str = Field(..., description="Name of the module")
+    module_progress: int = Field(default=0, description="Progress of the module")
+    module_completed: int = Field(default=0, description="Completion status of the module")
+    m_quizscore: int = Field(default=0, description="Quiz score for the module")
 
-class ModuleBase(SQLModel):
-    name: str = Field(..., description="Name of the module", nullable=False)
-    image_url: str = Field(None, description="URL of the module image", nullable=True)
-    quiz_score: int = Field(description="Quiz score of the module", default=0)
-    modules_completed: int = Field(description="Number of modules completed", default=0)
-    modules_in_progress: int = Field(description="Number of modules in progress", default=0)
+class ModuleQuiz(BaseModel, ModuleQuizBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=True):
+    __tablename__ = "module_quizzes"
 
-
-class Module(BaseModel, ModuleBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=True):
-    __tablename__ = "modules"
-
-    user_id: UUID = Field(..., foreign_key="users.id", description="ID of the user associated with the module")
-    user: "User" = Relationship(back_populates="modules")
-    lessons: list["Lesson"] = Relationship(
-        back_populates="module", sa_relationship_kwargs={"cascade": "all, delete"}
-    )
+    user_id: UUID = Field(..., foreign_key="users.id", description="ID of the user")
+    
+    user: "User" = Relationship(back_populates="module_quizzes")
 
     def __repr__(self):
-        return f"<Module (id: {self.id}, name: {self.name}, user_id: {self.user_id})>"
+        return f"<ModuleQuiz (id: {self.id}, module_name: {self.module_name}, user_id: {self.user_id})>"

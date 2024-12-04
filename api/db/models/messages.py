@@ -10,6 +10,7 @@ class MessageBase(SQLModel):
     sender_id: UUID = Field(..., foreign_key="users.id", description="ID of the sender user")
     receiver_id: UUID = Field(..., foreign_key="users.id", description="ID of the receiver user")
     message: str = Field(..., description="The content of the message", nullable=False)
+    is_read: bool = Field(default=False)
 
 class Message(BaseModel, MessageBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=True):
     __tablename__ = "messages"
