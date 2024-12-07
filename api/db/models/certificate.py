@@ -28,9 +28,8 @@ class Certificate(BaseModel, CertificateBase, IdMixin, TimestampMixin, SoftDelet
     __tablename__: ClassVar[str] = "certificates"
 
     user: "User" = Relationship(back_populates="certificates")
-    module_quiz: "ModuleQuiz" = Relationship(back_populates="certificates")
+    module_quiz: "ModuleQuiz" = Relationship(back_populates="certificates")  # Match "certificates" in ModuleQuiz
 
-    # Explicitly set created_at and updated_at to be timezone-aware
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(datetime.timezone.utc),
         sa_column=Column(DateTime(timezone=True), server_default=func.now())

@@ -67,7 +67,7 @@ class CertificateService(BaseService):
         certificate_url = await self.generate_certificate_pdf(
             user, 
             data.module_name or module_quiz.module_name, 
-            data.score or module_quiz.m_quizscore
+            module_quiz.m_quizscore
         )
         
         # Ensure created_at and updated_at are timezone-aware
