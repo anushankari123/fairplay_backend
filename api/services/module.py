@@ -2,10 +2,14 @@ from uuid import UUID
 from sqlmodel import col
 from sqlalchemy.future import select
 from sqlalchemy.sql import not_
-from api.db.models.module import ModuleQuiz
+
 from api.interfaces.utils import List
 from api.interfaces.module import ModuleQuizCreate
 from api.utils.exceptions import ConflictError, NotFoundError
+
+from api.services.certificate import CertificateService
+from api.interfaces.certificate import CertificateCreate
+from api.db.models.module import ModuleQuiz
 from .base import BaseService
 
 class ModuleQuizService(BaseService):
@@ -44,16 +48,46 @@ class ModuleQuizService(BaseService):
 
     async def increment_module_completed(self, module_quiz_id: UUID) -> ModuleQuiz:
         """
-        Increment module completed by one. If completion is already noted, return the existing data without incrementing.
+        Increment module completed count and create a certificate if necessary.
+        Ensures the most up-to-date quizscore is used when creating the certificate.
         """
         module_quiz = await self.get_module_quiz_by_id(module_quiz_id)
+
         if module_quiz.module_completed >= 1:
-            # Return the existing data without incrementing
             return module_quiz
-        
-        module_quiz.module_completed += 1
-        await module_quiz.save(self.db)
-        return module_quiz
+
+        try:
+            # Increment module completed count
+            module_quiz.module_completed += 1
+            await module_quiz.save(self.db)
+
+            # Ensure the latest quizscore is fetched
+            await self.db.refresh(module_quiz)
+
+            # Automatically create certificate when the module is completed
+            certificate_service = CertificateService(db=self.db)
+
+            # Check if certificate already exists
+            existing_certificate = await certificate_service.get_certificate_by_module_quiz(module_quiz_id)
+
+            if not existing_certificate:
+                # Prepare certificate creation data with the latest quizscore
+                certificate_data = CertificateCreate(
+                    module_quiz_id=module_quiz_id,
+                    user_id=module_quiz.user_id,
+                    module_name=module_quiz.module_name,
+                    score=module_quiz.m_quizscore  # Use the latest score from the refreshed module quiz
+                )
+
+                # Create certificate
+                await certificate_service.create_certificate(certificate_data)
+
+            return module_quiz
+        except Exception as e:
+            # Log the error and re-raise or handle appropriately
+            print(f"Error incrementing module completed: {e}")
+            raise
+
 
 
     async def update_module_quiz_score(self, module_quiz_id: UUID, score: int) -> ModuleQuiz:
@@ -111,16 +145,8 @@ class ModuleQuizService(BaseService):
     async def get_total_progress_and_completed(self, user_id: UUID) -> dict:
         """
         Get the total progress and total completed for a specific user.
-
-        Args:
-        - user_id (UUID): The ID of the user.
-
-        Returns:
-        - dict: A dictionary with total progress and total completed.
         """
-        query = select(
-            ModuleQuiz
-        ).where(
+        query = select(ModuleQuiz).where(
             ModuleQuiz.user_id == user_id,
             not_(ModuleQuiz.is_deleted)
         )

@@ -5,6 +5,7 @@ from .base import IdMixin, TimestampMixin, SoftDeleteMixin, BaseModel
 
 if TYPE_CHECKING:
     from .user import User
+    from .certificate import Certificate
 
 class ModuleQuizBase(SQLModel):
     module_name: str = Field(..., description="Name of the module")
@@ -18,6 +19,9 @@ class ModuleQuiz(BaseModel, ModuleQuizBase, IdMixin, TimestampMixin, SoftDeleteM
     user_id: UUID = Field(..., foreign_key="users.id", description="ID of the user")
     
     user: "User" = Relationship(back_populates="module_quizzes")
+    certificates: list["Certificate"] = Relationship(
+        back_populates="module_quiz", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
 
     def __repr__(self):
         return f"<ModuleQuiz (id: {self.id}, module_name: {self.module_name}, user_id: {self.user_id})>"
