@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from api.services import ModuleQuizService
 from api.interfaces.utils import List
 from api.interfaces.module import ModuleQuizCreate, ModuleQuizRead
@@ -31,13 +31,24 @@ async def increment_module_progress(module_quiz_id: UUID, service: ModuleQuizSer
     """
     return await service.increment_module_progress(module_quiz_id)
 
-@module_router.patch("/{module_quiz_id}/completed")
-async def increment_module_completed(module_quiz_id: UUID, service: ModuleQuizService = Depends(ModuleQuizService)):
-    """
-    Increment module completed status.
-    """
-    return await service.increment_module_completed(module_quiz_id)
 
+@module_router.patch("/{module_quiz_id}/completed")
+async def increment_module_completed(
+    module_quiz_id: UUID, 
+    service: ModuleQuizService = Depends(ModuleQuizService)
+):
+    try:
+        return await service.increment_module_completed(module_quiz_id)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        # Log the full traceback
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Unexpected error completing module: {str(e)}"
+        )
 @module_router.patch("/{module_quiz_id}/score")
 async def update_module_quiz_score(
     module_quiz_id: UUID, 
@@ -74,10 +85,10 @@ async def get_total_progress_and_completed(
 ):
     """
     Get the total progress and completed module quizzes for a specific user.
-
+    
     Args:
     - user_id (UUID): The ID of the user.
-
+    
     Returns:
     - dict: A dictionary containing total progress and total completed.
     """
@@ -85,4 +96,10 @@ async def get_total_progress_and_completed(
         result = await module_quiz_service.get_total_progress_and_completed(user_id)
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log the full error for server-side debugging
+        print(f"Detailed error: {e}")
+        # Return a more informative error response
+        raise HTTPException(
+            status_code=500, 
+            detail=f"An error occurred while fetching module progress: {str(e)}"
+        )
