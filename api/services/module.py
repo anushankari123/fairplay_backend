@@ -1,11 +1,13 @@
+from datetime import datetime
 from uuid import UUID
+from fastapi import HTTPException
 from sqlmodel import col
 from sqlalchemy.future import select
 from sqlalchemy.sql import not_
 
 from api.interfaces.utils import List
 from api.interfaces.module import ModuleQuizCreate
-from api.utils.exceptions import ConflictError, NotFoundError
+from api.utils.exceptions import NotFoundError
 
 from api.services.certificate import CertificateService
 from api.interfaces.certificate import CertificateCreate
@@ -47,46 +49,41 @@ class ModuleQuizService(BaseService):
         return module_quiz
 
     async def increment_module_completed(self, module_quiz_id: UUID) -> ModuleQuiz:
-        """
-        Increment module completed count and create a certificate if necessary.
-        Ensures the most up-to-date quizscore is used when creating the certificate.
-        """
-        module_quiz = await self.get_module_quiz_by_id(module_quiz_id)
-
-        if module_quiz.module_completed >= 1:
-            return module_quiz
-
         try:
-            # Increment module completed count
-            module_quiz.module_completed += 1
-            await module_quiz.save(self.db)
+            module_quiz = await self.get_module_quiz_by_id(module_quiz_id)
 
-            # Ensure the latest quizscore is fetched
+            if module_quiz.module_completed >= 1:
+                return module_quiz
+
+            module_quiz.module_completed += 1
+            
+            module_quiz.completed_at = datetime.now()
+            await module_quiz.save(self.db)
+            
+            # Refresh to ensure latest data
             await self.db.refresh(module_quiz)
 
-            # Automatically create certificate when the module is completed
+            # Certificate creation logic remains the same
             certificate_service = CertificateService(db=self.db)
-
-            # Check if certificate already exists
             existing_certificate = await certificate_service.get_certificate_by_module_quiz(module_quiz_id)
 
             if not existing_certificate:
-                # Prepare certificate creation data with the latest quizscore
                 certificate_data = CertificateCreate(
                     module_quiz_id=module_quiz_id,
                     user_id=module_quiz.user_id,
                     module_name=module_quiz.module_name,
-                    score=module_quiz.m_quizscore  # Use the latest score from the refreshed module quiz
+                    score=module_quiz.m_quizscore
                 )
-
-                # Create certificate
                 await certificate_service.create_certificate(certificate_data)
 
             return module_quiz
+        except NotFoundError as nfe:
+            # Specific handling for not found errors
+            raise HTTPException(status_code=404, detail=str(nfe))
         except Exception as e:
-            # Log the error and re-raise or handle appropriately
-            print(f"Error incrementing module completed: {e}")
-            raise
+            # More detailed logging and specific error handling
+            print(f"Detailed error in increment_module_completed: {e}")
+            raise HTTPException(status_code=500, detail="Failed to complete module")
 
 
 
@@ -146,19 +143,24 @@ class ModuleQuizService(BaseService):
         """
         Get the total progress and total completed for a specific user.
         """
-        query = select(ModuleQuiz).where(
-            ModuleQuiz.user_id == user_id,
-            not_(ModuleQuiz.is_deleted)
-        )
+        try:
+            query = select(ModuleQuiz).where(
+                ModuleQuiz.user_id == user_id,
+                not_(ModuleQuiz.is_deleted)
+            )
 
-        result = await self.db.execute(query)
-        quizzes = result.scalars().all()
+            result = await self.db.execute(query)
+            quizzes = result.scalars().all()
 
-        # Aggregate progress and completed counts
-        total_progress = sum(quiz.module_progress for quiz in quizzes)
-        total_completed = sum(quiz.module_completed for quiz in quizzes)
+            # Aggregate progress and completed counts
+            total_progress = sum(quiz.module_progress for quiz in quizzes)
+            total_completed = sum(quiz.module_completed for quiz in quizzes)
 
-        return {
-            "total_progress": total_progress,
-            "total_completed": total_completed
-        }
+            return {
+                "total_progress": total_progress,
+                "total_completed": total_completed
+            }
+        except Exception as e:
+            # Add more detailed logging
+            print(f"Error in get_total_progress_and_completed: {e}")
+            raise

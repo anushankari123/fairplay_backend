@@ -134,3 +134,6 @@ class ConflictError(HTTPError):
 
     def __init__(self, detail: str = None):
         self.detail = detail if detail else self.detail
+class BlockchainStorageError(Exception):
+    """Exception raised for errors in blockchain storage."""
+    pass

@@ -12,9 +12,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 import os
 from datetime import datetime, timezone
-
 from sqlmodel import col
-
 from api.db.models.certificate import Certificate
 from api.db.models.module import ModuleQuiz
 from api.db.models.user import User
@@ -27,66 +25,59 @@ class CertificateService(BaseService):
     async def create_certificate(self, data: CertificateCreate) -> Certificate:
         """
         Create a new certificate for a completed module.
-        
+
         Args:
-        - data (CertificateCreate): Information to create the certificate.
-        
+            data (CertificateCreate): Data for certificate creation
+
         Returns:
-        - Certificate: Details of the created certificate.
+            Certificate: The newly created certificate
         """
-        # Verify module quiz exists and is completed
-        module_quiz = await ModuleQuiz.get(
-            db=self.db,
-            filters=[
-                ModuleQuiz.id == data.module_quiz_id, 
-                ModuleQuiz.module_completed >= 1, 
+        try:
+            # Fetch the corresponding module quiz to get the latest score
+            query = select(ModuleQuiz).where(
+                ModuleQuiz.id == data.module_quiz_id,
                 ~col(ModuleQuiz.is_deleted)
-            ]
-        )
-        module_quiz = module_quiz.one_or_none()
-
-        if not module_quiz:
-            raise NotFoundError("Module quiz not completed or does not exist")
+            )
+            result = await self.db.execute(query)
+            module_quiz = result.scalars().one_or_none()
+            
+            if module_quiz:
+                # Override the score with the module quiz's actual score
+                data.score = module_quiz.m_quizscore
+            else:
+                # If no module quiz found, log and potentially raise an exception
+                print(f"No module quiz found for ID: {data.module_quiz_id}")
+                raise NotFoundError("Associated module quiz not found")
+            
+            # Check if a certificate already exists for this module quiz
+            existing_certificate_query = select(Certificate).where(
+                Certificate.module_quiz_id == data.module_quiz_id,
+                ~col(Certificate.is_deleted)
+            )
+            existing_certificate_result = await self.db.execute(existing_certificate_query)
+            existing_certificate = existing_certificate_result.scalars().one_or_none()
+            
+            if existing_certificate:
+                # If certificate exists, update the existing one
+                existing_certificate.score = data.score
+                await existing_certificate.save(self.db)
+                return existing_certificate
+            
+            # Create a new certificate
+            new_certificate = Certificate(**data.model_dump())
+            
+            # Optional: Generate a certificate URL if needed
+            # This could be a method to generate a unique certificate URL
+           
+            
+            await new_certificate.save(self.db)
+            return new_certificate
         
-        # Verify user exists
-        user = await User.get(
-            db=self.db, 
-            filters=[User.id == data.user_id, ~col(User.is_deleted)]
-        )
-        user = user.one_or_none()
-
-        if not user:
-            raise NotFoundError("User not found")
-        
-        # Check if certificate already exists
-        existing_certificate = await self.get_certificate_by_module_quiz(data.module_quiz_id)
-        if existing_certificate:
-            return existing_certificate
-        
-        # Generate certificate PDF
-        certificate_url = await self.generate_certificate_pdf(
-            user, 
-            data.module_name or module_quiz.module_name, 
-            module_quiz.m_quizscore
-        )
-        
-        # Ensure created_at and updated_at are timezone-aware
-        now = datetime.now(timezone.utc)
-        
-        # Create certificate record
-        certificate_data = {
-            'user_id': data.user_id,
-            'module_quiz_id': data.module_quiz_id,
-            'module_name': data.module_name or module_quiz.module_name,
-            'score': data.score or module_quiz.m_quizscore,
-            'certificate_url': certificate_url,
-            'created_at': now,
-            'updated_at': now
-        }
-        
-        new_certificate = Certificate(**certificate_data)
-        await new_certificate.save(self.db)
-        return new_certificate
+        except Exception as e:
+            # Log the full error for debugging
+            print(f"Error creating certificate: {e}")
+            # Optionally re-raise the exception or handle it as needed
+            raise
 
     async def generate_certificate_pdf(self, user: User, module_name: str, score: int) -> str:
         """
