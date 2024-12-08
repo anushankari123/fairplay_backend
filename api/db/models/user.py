@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from .forum import ForumMember, ForumMessage
     from .module import ModuleQuiz
     from .lesson import LessonQuiz
+    from .alert import Alert
 
 
 class UserBase(SQLModel):
@@ -50,6 +51,9 @@ class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     lesson_quizzes: list["LessonQuiz"]= Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+    alerts: list["Alert"]= Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     

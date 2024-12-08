@@ -6,3 +6,4 @@ from .comments import CommentService
 from .forum import ForumService
 from .module import ModuleQuizService
 from .lesson import LessonQuizService
+from .alert import AlertService
