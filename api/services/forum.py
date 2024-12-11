@@ -13,6 +13,7 @@ from api.interfaces.forum import (
     ForumMessageRead
 )
 from api.utils.exceptions import NotFoundError, ConflictError
+from api.utils.spam_filter import SpamFilter
 from .base import BaseService
 
 class ForumService(BaseService):
@@ -72,6 +73,11 @@ class ForumService(BaseService):
         member = await self.db.scalar(member_query)
         if not member:
             raise NotFoundError("User is not a member of this forum")
+
+        # Check for promotional content
+        # Check for promotional content
+        if SpamFilter.detect_promotional_content(data.message):
+            raise ConflictError("Message content detected as promotional and rejected.")
 
         # Create forum message
         new_message = ForumMessage(**data.model_dump())

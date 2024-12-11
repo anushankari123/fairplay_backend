@@ -1,6 +1,7 @@
 from typing import Optional
 from pydantic import ConfigDict, EmailStr, field_validator
 from sqlmodel import SQLModel
+from uuid import UUID
 from api.db.models.user import UserBase
 from api.db.models import IdMixin, TimestampMixin, SoftDeleteMixin
 import re
@@ -9,23 +10,20 @@ import re
 class UserCreate(UserBase):
     model_config = ConfigDict(extra="forbid")
 
-    @field_validator('password')
-    @classmethod
-    def validate_password(cls, password):
-        # Password complexity validation
-        if len(password) < 8:
-            raise ValueError('Password must be at least 8 characters long')
-        if not re.search(r'[A-Z]', password):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not re.search(r'[a-z]', password):
-            raise ValueError('Password must contain at least one lowercase letter')
-        if not re.search(r'\d', password):
-            raise ValueError('Password must contain at least one number')
-        return password
 
 
 class UserRead(UserBase, IdMixin, TimestampMixin):
-    pass
+    id: UUID
+    first_name: str
+    last_name: str
+    email: str
+    phone_number: Optional[str] = None  # Allow phone_number to be None
+    password: Optional[str] = None
+    age: Optional[int] = None
+    bio: Optional[str] =None
+    country: Optional[str] = None
+    state: Optional[str] = None
+    dp_url: Optional[str] =None
 
 
 class UserReadInternal(UserRead, SoftDeleteMixin):
@@ -49,5 +47,6 @@ class UserUpdate(SQLModel):
 class UserLogin(SQLModel):
     email: EmailStr
     password: str
+    category: str
 
-    model_config = ConfigDict(extra="forbid")
+    

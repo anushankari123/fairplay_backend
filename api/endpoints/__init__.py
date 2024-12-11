@@ -69,14 +69,13 @@ TAGS_METADATA: list[dict] = [  # for better documentation in openapi spec
         "description": "Endpoint for lessons",
     },
     {
-        "name": "Certificate",
-        "description": "Endpoint for certificate",
-    },
-    {
         "name": "Newsletter",
         "description": "Endpoint for newsletter",
     },
-
+    {
+        "name": "Alert",
+        "description": "Endpoint for alerts",
+    },
 ]
 
 

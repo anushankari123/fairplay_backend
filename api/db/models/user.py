@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING,Optional
+from typing import TYPE_CHECKING, Optional
+from enum import Enum
 from sqlmodel import Field, SQLModel, AutoString, Relationship
 from pydantic import EmailStr
 from .base import IdMixin, TimestampMixin, SoftDeleteMixin, BaseModel
@@ -10,7 +11,17 @@ if TYPE_CHECKING:
     from .forum import ForumMember, ForumMessage
     from .module import ModuleQuiz
     from .lesson import LessonQuiz
+    from .alert import Alert
     from .certificate import Certificate
+
+
+class UserCategory(str, Enum):
+    COACH = "coach"
+    ATHELETE = "atheletes"
+    OTHERS= "others"
+    STUDENT = "student"
+    EXPERTS= "experts"
+
 
 class UserBase(SQLModel):
     first_name: str = Field(None, description="First Name of the User")
@@ -25,7 +36,9 @@ class UserBase(SQLModel):
     country: Optional[str] = Field(None, description="Country of the user")
     state: Optional[str] = Field(None, description="State of the user")
     dp_url: Optional[str] = Field(None, description="URL of the uploaded image")
-    
+    category: UserCategory = Field(
+        ..., description="Category of the user (e.g., coach, player, professional, student)"
+    )
 
 
 class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=True):
@@ -49,14 +62,15 @@ class User(BaseModel, UserBase, IdMixin, TimestampMixin, SoftDeleteMixin, table=
     module_quizzes: list["ModuleQuiz"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
-    lesson_quizzes: list["LessonQuiz"]= Relationship(
+    lesson_quizzes: list["LessonQuiz"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+    alerts: list["Alert"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     certificates: list["Certificate"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
-    
-
 
     def __repr__(self):
-        return f"<User (id: {self.id}, email: {self.email})>"
+        return f"<User (id: {self.id}, email: {self.email}, category: {self.category})>"
