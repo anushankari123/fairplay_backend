@@ -65,15 +65,6 @@ class ForumService(BaseService):
         if not forum:
             raise NotFoundError("Forum not found")
 
-        # Check if user is a member of the forum
-        member_query = select(ForumMember).where(
-            ForumMember.forum_id == data.forum_id, 
-            ForumMember.user_id == data.user_id
-        )
-        member = await self.db.scalar(member_query)
-        if not member:
-            raise NotFoundError("User is not a member of this forum")
-
         # Check for promotional content
         # Check for promotional content
         if SpamFilter.detect_promotional_content(data.message):

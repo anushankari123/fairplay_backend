@@ -3,7 +3,7 @@ from typing import List, Dict
 
 class JournalService:
     BASE_URL = "https://api.crossref.org/works"
-    ITEMS_PER_PAGE = 20  # Number of results per page
+    ITEMS_PER_PAGE = 50  # Number of results per page
 
     @classmethod
     def fetch_journals(cls, page: int = 1) -> List[dict]:
@@ -49,9 +49,11 @@ class JournalService:
                     "title": cls._extract_title(item),
                     "authors": cls._extract_authors(item),
                     "journal": cls._extract_journal_name(item),
+                    "publisher": cls._extract_publisher(item), 
                     "published_date": cls._extract_publication_date(item),
                     "doi": item.get("DOI", ""),
-                    "url": cls._extract_url(item)
+                    "url": cls._extract_url(item),
+                    
                 }
                 processed_journals.append(processed_journal)
             
@@ -99,6 +101,10 @@ class JournalService:
     def _extract_url(item: Dict) -> str:
         """Extract URL from journal item"""
         return item.get("URL") or f"https://doi.org/{item.get('DOI', '')}"
+    @staticmethod
+    def _extract_publisher(item: Dict) -> str:
+        """Extract publisher from journal item"""
+        return item.get("publisher", "Unknown Publisher")
 
 # Optional: Debug method
 def debug_journal_service():
@@ -115,3 +121,4 @@ def debug_journal_service():
             print(f"URL: {journal['url']}")
     except Exception as e:
         print(f"Debug failed: {e}")
+        
